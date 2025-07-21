@@ -36,25 +36,30 @@ async function uploadCookies(cookieString) {
 
 // 2. Запрос JSON расписания и teacher_id
 async function fetchSchedule() {
+  const url = `${serverUrl}/fetch.php`;
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'include'
+  });
+
+  const status = response.status;
+  const raw = await response.text();  // читаем as text
+
+  console.log(`FETCH  → Status ${status}`);
+  console.log('FETCH  → Body:', raw);
+
   try {
-    const response = await fetch(`${serverUrl}/fetch.php`, {
-      method: 'POST',
-      credentials: 'include'
-    });
-    if (!response.ok) {
-      throw new Error(`fetch failed: ${response.status} ${response.statusText}`);
-    }
-    const data = await response.json();
-    console.log('fetchSchedule data:', data);
-    if (!data.teacher_id) {
-      throw new Error('missing teacher_id in response');
-    }
+    const data = JSON.parse(raw);
+
+    if (!data.teacher_id) throw new Error('missing teacher_id');
     return data.teacher_id;
-  } catch (err) {
-    console.error('fetchSchedule error:', err);
-    throw err;
+
+  } catch (e) {
+    console.error('JSON parse failed', e.message);
+    throw new Error(`Bad JSON, status ${status}`);
   }
 }
+
 
 // 3. Генерация и открытие ICS-файла
 async function generateIcs(teacherId) {

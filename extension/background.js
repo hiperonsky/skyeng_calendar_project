@@ -13,7 +13,7 @@ async function getSkyengCookies() {
   return cookies.map(c => `${c.name}=${c.value}`).join('; ');
 }
 
-// Отправить cookies + timezone на сервер
+// Отправить cookies + timezone, получить teacher_id
 async function uploadCookies(cookieString) {
   const response = await fetch(`${serverUrl}/upload_cookies.php`, {
     method: 'POST',
@@ -23,38 +23,24 @@ async function uploadCookies(cookieString) {
   });
 
   const text = await response.text();
+
   if (!response.ok) {
     throw new Error(`upload failed: ${response.status} ${text}`);
   }
 
   console.log('uploadCookies response:', text);
-  return text;
-}
-
-// Запрос расписания и teacher_id
-async function fetchSchedule() {
-  const response = await fetch(`${serverUrl}/fetch.php`, {
-    method: 'POST',
-    credentials: 'include'
-  });
-
-  const status = response.status;
-  const raw = await response.text();
-
-  console.log(`FETCH  → Status ${status}`);
-  console.log('FETCH  → Body:', raw);
 
   try {
-    const data = JSON.parse(raw);
+    const data = JSON.parse(text);
     if (!data.teacher_id) throw new Error('missing teacher_id');
     return data.teacher_id;
   } catch (err) {
-    console.error('Ошибка разбора JSON:', err.message);
-    throw new Error(`Bad JSON, status ${status}`);
+    console.error('Ошибка разбора JSON из upload:', err.message);
+    throw new Error('Invalid JSON in upload_cookies.php response');
   }
 }
 
-// Открытие ICS-ссылки в новой вкладке (в worker-контексте window не существует)
+// Открыть ICS-файл в новой вкладке
 function generateIcs(teacherId) {
   const icsUrl = `${serverUrl}/generate.php/${teacherId}.ics`;
   console.log('Opening ICS URL:', icsUrl);
@@ -67,10 +53,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getAndUpload') {
     (async () => {
       try {
-        const ck = await getSkyengCookies();
-        await uploadCookies(ck);
-
-        const teacherId = await fetchSchedule();
+        const cookieString = await getSkyengCookies();
+        const teacherId = await uploadCookies(cookieString);
         generateIcs(teacherId);
 
         sendResponse({ success: true, teacherId });
@@ -83,7 +67,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Обновление cookies по расписанию (каждые 12 часов)
+// Плановая отправка cookies каждые 12 часов
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('updateCookies', {
     delayInMinutes: 1,
@@ -94,20 +78,16 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'updateCookies') {
     try {
-      const ck = await getSkyengCookies();
-      if (ck) {
-        await uploadCookies(ck);
-        const teacherId = await fetchSchedule();
-        generateIcs(teacherId);
-      }
+      const cookies = await getSkyengCookies();
+      const teacherId = await uploadCookies(cookies);
+      generateIcs(teacherId);
     } catch (err) {
       console.error('Ошибка автоматического обновления расписания:', err.message);
     }
   }
 });
 
-// DEBUG: экспорт функций в глобальный scope для ручного вызова в DevTools
+// DEBUG: экспорт в глобальный scope для ручного вызова из DevTools
 self.getSkyengCookies = getSkyengCookies;
 self.uploadCookies = uploadCookies;
-self.fetchSchedule = fetchSchedule;
 self.generateIcs = generateIcs;

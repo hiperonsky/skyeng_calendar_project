@@ -6,7 +6,9 @@
   "description": "Извлекает cookies Skyeng и отправляет их на сервер",
   "permissions": [
     "cookies",
-    "alarms"
+    "alarms",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "https://*.skyeng.ru/*",

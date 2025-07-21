@@ -1,10 +1,20 @@
 <?php
+// Файл: server/fetch.php
+
+// Включаем вывод ошибок для отладки (при необходимости отключить в продакшене)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-// fetch.php - получает события из API Skyeng и сохраняет в events.json
 
-// 1. Конфигурация
+// Разрешаем CORS-запросы из расширения
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit;
+}
+
+// 1. Конфигурация диапазона дат
 $fromDate = "2025-07-01T00:00:00+05:00";
 $tillDate = "2025-07-31T23:59:59+05:00";
 
@@ -22,13 +32,13 @@ if (empty($cookies)) {
     exit;
 }
 
-// 3. Подготавливаем данные для POST-запроса
+// 3. Подготавливаем тело POST-запроса к API Skyeng
 $postData = json_encode([
     "from" => $fromDate,
     "till" => $tillDate
 ]);
 
-// 4. Инициализируем cURL
+// 4. Выполняем cURL-запрос
 $ch = curl_init('https://api-teachers.skyeng.ru/v2/schedule/events');
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
@@ -43,40 +53,39 @@ curl_setopt_array($ch, [
     CURLOPT_TIMEOUT => 30
 ]);
 
-// 5. Выполняем запрос
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlError = curl_error($ch);
 curl_close($ch);
 
-// 6. Проверяем результат
+// 5. Обработка ошибок cURL
 if ($response === false || !empty($curlError)) {
     http_response_code(500);
     echo "Ошибка cURL: " . $curlError;
     exit;
 }
 
+// 6. Проверка HTTP-кода ответа
 if ($httpCode !== 200) {
     http_response_code($httpCode);
     echo "HTTP ошибка: " . $httpCode . "\nОтвет: " . $response;
     exit;
 }
 
-// 7. Проверяем JSON на ошибки авторизации
+// 7. Декодируем JSON и проверяем на ошибки авторизации
 $jsonData = json_decode($response, true);
 if (json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(500);
     echo "Ошибка декодирования JSON: " . json_last_error_msg();
     exit;
 }
-
 if (isset($jsonData['code']) && $jsonData['code'] === 'internal_error') {
     http_response_code(401);
     echo "Ошибка авторизации - cookies устарели, обновите их вручную";
     exit;
 }
 
-// 8. Сохраняем JSON в файл
+// 8. Сохраняем сырые события в файл events.json
 $eventsJsonFile = __DIR__ . '/events.json';
 if (file_put_contents($eventsJsonFile, $response) === false) {
     http_response_code(500);
@@ -84,7 +93,20 @@ if (file_put_contents($eventsJsonFile, $response) === false) {
     exit;
 }
 
-// 9. Успешный ответ
-echo "События успешно сохранены в events.json\n";
-echo "Количество событий: " . (isset($jsonData['data']['events']) ? count($jsonData['data']['events']) : 0);
-?>
+// 9. Формируем вывод JSON с teacher_id и списком событий
+// Предполагаем, что teacher_id хранится вместе с событиями в ответе API
+$teacherId = $jsonData['data']['teacherId'] ?? null;
+$events    = $jsonData['data']['events']   ?? [];
+
+if (!$teacherId) {
+    http_response_code(500);
+    echo "Не удалось определить teacher_id в ответе API";
+    exit;
+}
+
+// 10. Возвращаем JSON для расширения
+header('Content-Type: application/json');
+echo json_encode([
+    'teacher_id' => $teacherId,
+    'events'     => $events
+]);

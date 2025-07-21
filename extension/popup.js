@@ -1,3 +1,5 @@
+// Файл: extension/popup.js
+
 document.addEventListener('DOMContentLoaded', () => {
   const btn    = document.getElementById('btn');
   const status = document.getElementById('status');
@@ -13,14 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await new Promise(resolve =>
         chrome.runtime.sendMessage({ action: 'getAndUpload' }, resolve)
       );
-      if (response && response.success && response.icsFile) {
+
+      if (response && response.success && response.teacherId) {
         status.textContent = 'OK';
-        const icsUrl = `http://2.59.183.62/skyengcal/${response.icsFile}`;
+        // Формируем URL на основе teacherId
+        const icsUrl = `http://2.59.183.62/skyengcal/generate.php/${response.teacherId}.ics`;
         field.textContent = icsUrl;
         field.style.display = 'block';
         instr.style.display = 'block';
       } else {
-        status.textContent = 'Ошибка';
+        console.error('Response error:', response);
+        status.textContent = 'Ошибка получения данных';
       }
     } catch (e) {
       console.error(e);
@@ -28,10 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Клик по полю для копирования ссылки
   field.addEventListener('click', () => {
     const text = field.textContent;
     navigator.clipboard.writeText(text)
       .then(() => status.textContent = 'Ссылка скопирована')
-      .catch(() => status.textContent = 'Не удалось скопировать');
+      .catch(err => {
+        console.error('Clipboard error:', err);
+        status.textContent = 'Не удалось скопировать';
+      });
   });
 });

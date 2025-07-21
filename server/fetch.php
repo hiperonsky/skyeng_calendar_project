@@ -4,7 +4,6 @@
 // Включаем вывод ошибок для отладки (при необходимости отключить в продакшене)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-ini_set('error_log', __DIR__ . '/fetch_errors.log');
 error_reporting(E_ALL);
 
 // Разрешаем CORS-запросы из расширения

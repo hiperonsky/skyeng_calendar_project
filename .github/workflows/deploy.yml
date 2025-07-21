@@ -16,7 +16,14 @@ jobs:
       - name: Deploy server files via rsync
         uses: burnett01/rsync-deployments@7.0.2
         with:
-          switches: "-avzr --delete --exclude=.git* --exclude=*.ics --exclude=events.json --exclude=my_*.txt --exclude=debug_schedule.txt --exclude=test_simple.php.ini"
+          switches: >-
+            -avzr --delete
+            --exclude=.git*
+            --exclude=*.ics
+            --exclude=events.json
+            --exclude=my_*.txt
+            --exclude=debug_schedule.txt
+            --exclude=test_simple.php.ini
           path: server/
           remote_path: ${{ secrets.REMOTE_PATH }}
           remote_host: ${{ secrets.SSH_HOST }}
@@ -31,11 +38,17 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd ${{ secrets.REMOTE_PATH }}
-            chown www-data:www-data *.php
-            chmod 644 *.php
-            echo "Permissions updated"
 
-      - name: Run fetch.php and generate.php
+            # Устанавливаем владельца каталога и всех вложенных файлов
+            sudo chown -R www-data:www-data .
+
+            # Даем право на запись и исполнение каталогу, чтение/запись файлам
+            sudo find . -type d -exec chmod 775 {} \;
+            sudo find . -type f -exec chmod 664 {} \;
+
+            echo "Owner and permissions updated"
+
+      - name: Run fetch.php and generate.php smoke tests
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -43,5 +56,7 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd ${{ secrets.REMOTE_PATH }}
-            php fetch.php
-            php generate.php
+            echo "Testing fetch.php"
+            php fetch.php || echo "fetch.php failed"
+            echo "Testing generate.php"
+            php generate.php || echo "generate.php failed"

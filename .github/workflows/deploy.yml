@@ -1,0 +1,64 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy server files via rsync
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avzr --delete \
+            --exclude='.git*' \
+            --exclude='*.ics' \
+            --exclude='events.json' \
+            --exclude='my_*.txt' \
+            --exclude='debug_schedule.txt' \
+            --exclude='test_simple.php.ini'
+          path: server/
+          remote_path: ${{ secrets.REMOTE_PATH }}
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy extension files via rsync
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -avzr --delete --exclude='.git*'
+          path: extension/
+          remote_path: ${{ secrets.EXTENSION_PATH }}
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Set permissions on server scripts
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ${{ secrets.REMOTE_PATH }}
+            chown www-data:www-data *.php
+            chmod 644 *.php
+            echo "Server scripts permissions set"
+
+      - name: Run fetch and generate on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ${{ secrets.REMOTE_PATH }}
+            php fetch.php
+            php generate.php
+            echo "Data refreshed and ICS regenerated"

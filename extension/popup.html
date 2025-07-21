@@ -1,0 +1,47 @@
+<!-- popup.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Обновить cookies</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+        width: 300px;
+      }
+      #btn {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      #status {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      #ics-field {
+        margin-top: 10px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        cursor: pointer;
+        user-select: all;
+        font-size: 13px;
+        word-break: break-all;
+      }
+      #instruction {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="btn">Отправить cookies</button>
+    <div id="status"></div>
+    <div id="ics-field" style="display: none;"></div>
+    <div id="instruction" style="display: none;">
+      Нажмите на поле со ссылкой, она скопируется в буфер обмена, и вставьте ссылку в ваше приложение календаря.
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

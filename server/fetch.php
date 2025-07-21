@@ -10,7 +10,10 @@ error_reporting(E_ALL);
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+
+// Безопасно читаем метод запроса
+$method = $_SERVER['REQUEST_METHOD'] ?? '';
+if ($method === 'OPTIONS') {
     exit;
 }
 
@@ -52,7 +55,6 @@ curl_setopt_array($ch, [
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_TIMEOUT => 30
 ]);
-
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlError = curl_error($ch);
@@ -94,7 +96,6 @@ if (file_put_contents($eventsJsonFile, $response) === false) {
 }
 
 // 9. Формируем вывод JSON с teacher_id и списком событий
-// Предполагаем, что teacher_id хранится вместе с событиями в ответе API
 $teacherId = $jsonData['data']['teacherId'] ?? null;
 $events    = $jsonData['data']['events']   ?? [];
 

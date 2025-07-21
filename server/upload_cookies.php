@@ -1,5 +1,7 @@
 <?php
-// Файл: upload_cookies.php
+ini_set('display_errors', 1);
+ini_set('error_log', __DIR__ . '/upload_errors.log');
+error_reporting(E_ALL);
 
 // Разрешаем CORS-запросы из расширения
 header('Access-Control-Allow-Origin: *');

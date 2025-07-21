@@ -6,3 +6,4 @@ server/events.json
 server/debug_schedule.txt
 server/*.ini
 
+**/.DS_Store

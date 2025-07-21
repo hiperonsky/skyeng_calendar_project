@@ -13,7 +13,7 @@ async function getSkyengCookies() {
   return cookies.map(c => `${c.name}=${c.value}`).join('; ');
 }
 
-// Отправить cookies + timezone, получить teacher_id
+// Отправить cookies + timezone и получить teacher_id
 async function uploadCookies(cookieString) {
   const response = await fetch(`${serverUrl}/upload_cookies.php`, {
     method: 'POST',
@@ -40,6 +40,25 @@ async function uploadCookies(cookieString) {
   }
 }
 
+// Вызов fetch.php с teacher_id → создаёт JSON файл на сервере
+async function fetchSchedule(teacherId) {
+  const response = await fetch(`${serverUrl}/fetch.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `teacher_id=${encodeURIComponent(teacherId)}`,
+    credentials: 'include'
+  });
+
+  const text = await response.text();
+  console.log('fetch.php response:', text);
+
+  if (!response.ok) {
+    throw new Error(`fetch failed: ${response.status} ${text}`);
+  }
+
+  return text;
+}
+
 // Открыть ICS-файл в новой вкладке
 function generateIcs(teacherId) {
   const icsUrl = `${serverUrl}/generate.php/${teacherId}.ics`;
@@ -48,13 +67,14 @@ function generateIcs(teacherId) {
   chrome.tabs.create({ url: icsUrl });
 }
 
-// Обработка сообщений из popup.js
+// Обработка сообщений из popup.js (нажатие на кнопку)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getAndUpload') {
     (async () => {
       try {
         const cookieString = await getSkyengCookies();
         const teacherId = await uploadCookies(cookieString);
+        await fetchSchedule(teacherId); // Важно для создания JSON
         generateIcs(teacherId);
 
         sendResponse({ success: true, teacherId });
@@ -63,7 +83,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, error: err.message });
       }
     })();
-    return true; // Делает sendResponse асинхронным
+    return true; // Асинхронный sendResponse
   }
 });
 
@@ -80,6 +100,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     try {
       const cookies = await getSkyengCookies();
       const teacherId = await uploadCookies(cookies);
+      await fetchSchedule(teacherId); // Обновляет JSON
       generateIcs(teacherId);
     } catch (err) {
       console.error('Ошибка автоматического обновления расписания:', err.message);
@@ -90,4 +111,5 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // DEBUG: экспорт в глобальный scope для ручного вызова из DevTools
 self.getSkyengCookies = getSkyengCookies;
 self.uploadCookies = uploadCookies;
+self.fetchSchedule = fetchSchedule;
 self.generateIcs = generateIcs;

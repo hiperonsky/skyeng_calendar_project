@@ -1,0 +1,8 @@
+# Куки, логи и сгенерированные файлы
+server/my_cookies.txt
+server/my_timezone.txt
+server/*.ics
+server/events.json
+server/debug_schedule.txt
+server/*.ini
+

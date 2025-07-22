@@ -5,7 +5,7 @@ console.log('SW active');
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 console.log('User time zone:', userTimeZone);
 
-const serverUrl = 'https://2.59.183.62/skyengcal';
+const serverUrl = 'http://2.59.183.62/skyengcal';
 
 // Получить cookies с домена skyeng.ru
 async function getSkyengCookies() {

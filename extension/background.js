@@ -40,7 +40,7 @@ async function uploadCookies(cookieString) {
   }
 }
 
-// Вызов fetch.php с teacher_id → создаёт JSON файл на сервере
+// Вызов fetch.php → создаёт JSON файл расписания
 async function fetchSchedule(teacherId) {
   const response = await fetch(`${serverUrl}/fetch.php`, {
     method: 'POST',
@@ -59,35 +59,37 @@ async function fetchSchedule(teacherId) {
   return text;
 }
 
-// Открыть ICS-файл в новой вкладке
-function generateIcs(teacherId) {
-  const icsUrl = `${serverUrl}/generate.php/${teacherId}.ics`;
-  console.log('Opening ICS URL:', icsUrl);
+// Запрос генерации ICS файла на сервере
+async function generateIcsOnServer(teacherId) {
+  const response = await fetch(`${serverUrl}/generate.php/${teacherId}.ics`);
+  const text = await response.text();
+  console.log('generate.php response:', text);
 
-  chrome.tabs.create({ url: icsUrl });
+  const icsUrl = `${serverUrl}/ics/${teacherId}.ics`;
+  return icsUrl;
 }
 
-// Обработка сообщений из popup.js (нажатие на кнопку)
+// Обработка сообщений из popup.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getAndUpload') {
     (async () => {
       try {
         const cookieString = await getSkyengCookies();
         const teacherId = await uploadCookies(cookieString);
-        await fetchSchedule(teacherId); // Важно для создания JSON
-        generateIcs(teacherId);
+        await fetchSchedule(teacherId);
+        const icsUrl = await generateIcsOnServer(teacherId);
 
-        sendResponse({ success: true, teacherId });
+        sendResponse({ success: true, teacherId, icsUrl });
       } catch (err) {
         console.error('Ошибка в pipeline:', err.message);
         sendResponse({ success: false, error: err.message });
       }
     })();
-    return true; // Асинхронный sendResponse
+    return true;
   }
 });
 
-// Плановая отправка cookies каждые 12 часов
+// Обновление cookies автоматически
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('updateCookies', {
     delayInMinutes: 1,
@@ -100,16 +102,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     try {
       const cookies = await getSkyengCookies();
       const teacherId = await uploadCookies(cookies);
-      await fetchSchedule(teacherId); // Обновляет JSON
-      generateIcs(teacherId);
+      await fetchSchedule(teacherId);
+      await generateIcsOnServer(teacherId);
     } catch (err) {
-      console.error('Ошибка автоматического обновления расписания:', err.message);
+      console.error('Ошибка автообновления:', err.message);
     }
   }
 });
 
-// DEBUG: экспорт в глобальный scope для ручного вызова из DevTools
+// DEBUG
 self.getSkyengCookies = getSkyengCookies;
 self.uploadCookies = uploadCookies;
 self.fetchSchedule = fetchSchedule;
-self.generateIcs = generateIcs;
+self.generateIcsOnServer = generateIcsOnServer;

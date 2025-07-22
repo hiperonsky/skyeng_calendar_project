@@ -12,7 +12,8 @@
   ],
   "host_permissions": [
     "https://*.skyeng.ru/*",
-    "http://2.59.183.62/*"
+    "http://2.59.183.62/*",
+    "https://vovanradio.online/*"
   ],
   "background": {
     "service_worker": "background.js",

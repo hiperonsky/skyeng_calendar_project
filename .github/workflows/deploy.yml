@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Deploy server files via rsync
         uses: burnett01/rsync-deployments@7.0.2
         with:
           switches: >-
-            -avzr
+            -avzr 
             --exclude=.git*
             --exclude=*.ics
             --exclude=events.json
@@ -41,9 +41,14 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
             cd ${{ secrets.REMOTE_PATH }}
+
+            # Устанавливаем владельца каталога и всех вложенных файлов
             sudo chown -R www-data:www-data .
+
+            # Даем право на запись и исполнение каталогу, чтение/запись файлам
             sudo find . -type d -exec chmod 775 {} \;
             sudo find . -type f -exec chmod 664 {} \;
+
             echo "Owner and permissions updated"
 
       - name: Run fetch.php and generate.php smoke tests

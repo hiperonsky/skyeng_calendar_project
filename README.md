@@ -12,7 +12,7 @@
 Структура проекта
 -----------------
 
-'''
+'''bash
 skyeng_calendar_project/
 ├── README.md
 ├── extension/
@@ -32,6 +32,7 @@ skyeng_calendar_project/
 │   └── ics/             ← Папка для готовых .ics файлов
 └── update_all_ics.php   ← CLI-скрипт для периодической генерации всех .ics
 '''
+
 Описание папок и файлов
 -----------------------
 

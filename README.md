@@ -20,17 +20,15 @@ skyeng_calendar_project/
 │   ├── background.js
 │   ├── popup.js
 │   ├── popup.html
-│   └── icons/
-│       ├── icon16.png
-│       └── icon48.png
-├── server/
+└── server/
 │   ├── fetch.php
 │   ├── upload_cookies.php
 │   ├── generate.php
+│   ├── update_all_ics.php   ← CLI-скрипт для периодической генерации всех .ics
 │   ├── json/            ← Папка с результатами fetch.php
 │   ├── timezone/        ← Папка с часовыми поясами пользователей
 │   └── ics/             ← Папка для готовых .ics файлов
-└── update_all_ics.php   ← CLI-скрипт для периодической генерации всех .ics
+
 ```
 
 Описание папок и файлов
@@ -40,8 +38,6 @@ skyeng_calendar_project/
 --------------
 
 * **README.md** Основная документация проекта: описание назначения, инструкции по установке, настройке и использованию.
-
-* **update\_all\_ics.php** Скрипт для запуска из cron: находит все пары файловcookies/{teacherId}\_cookies.txt и timezone/{teacherId}\_timezone.txt,вызывает server/generate.php для каждой пары и логирует результат.
 
 Папка extension/
 ----------------
@@ -62,8 +58,6 @@ skyeng_calendar_project/
 
 * **popup.js**, **popup.html** Интерфейс расширения: кнопка запуска обновления и отображения ссылки на .ics файл.
 
-* **icons/** Иконки расширения в разных размерах (16×16, 48×48).
-
 Папка server/
 -------------
 
@@ -74,6 +68,8 @@ skyeng_calendar_project/
 * **upload\_cookies.php** Принимает POST-запрос с куки пользователя и часовым поясом, сохраняет их для последующего использования в fetch.php и generate.php, возвращает teacher\_id в формате JSON.
 
 * **generate.php** Конвертирует JSON-расписание и информацию о часовом поясе в файл iCalendar и сохраняет его как server/ics/{teacherId}.ics. Поддерживает как веб-запросы (через PATH\_INFO), так и CLI-вызов (при передаче teacherId в $argv).
+
+* **update\_all\_ics.php** Скрипт для запуска из cron: находит все пары файлов cookies/{teacherId}\_cookies.txt и timezone/{teacherId}\_timezone.txt, вызывает server/generate.php для каждой пары и логирует результат.
 
 * **json/** Директория для хранения промежуточных JSON-файлов с данными расписания.
 

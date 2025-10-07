@@ -17,23 +17,9 @@ if ($method === 'OPTIONS') {
     exit;
 }
 
-// Считываем таймзону
-$timezone = trim(file_get_contents($timezoneFile));
-
-// Вычисляем динамические даты
-$currentDate = new DateTime('now', new DateTimeZone($timezone));
-
-// Начало текущего месяца
-$fromDate = $currentDate->format('Y-m-01T00:00:00P');
-
-// Конец следующего месяца
-$endOfNextMonth = clone $currentDate;
-$endOfNextMonth->add(new DateInterval('P1M'));
-$tillDate = $endOfNextMonth->format('Y-m-t\T23:59:59P');
-
-// Удалите или закомментируйте старые статичные строки:
-// $fromDate = "2025-07-01T00:00:00+05:00";
-// $tillDate = "2025-07-31T23:59:59+05:00";
+// Диапазон дат (можно добавить динамику через параметры запроса)
+$fromDate = "2025-10-01T00:00:00+05:00";
+$tillDate = "2025-10-31T23:59:59+05:00";
 
 // teacher_id должен приходить через POST (или GET) — пример для POST:
 $teacherId = $_POST['teacher_id'] ?? null;

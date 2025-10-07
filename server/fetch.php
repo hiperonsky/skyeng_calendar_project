@@ -75,6 +75,8 @@ curl_setopt_array($ch, [
     CURLOPT_TIMEOUT => 30
 ]);
 $response = curl_exec($ch);
+// После $response = curl_exec($ch);
+error_log("DEBUG RESPONSE HTTP_CODE={$httpCode} body={$response}");
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlErr = curl_error($ch);
 curl_close($ch);

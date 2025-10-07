@@ -21,15 +21,22 @@ if ($method === 'OPTIONS') {
 //$fromDate = "2025-11-01T00:00:00+05:00";
 //$tillDate = "2025-11-30T23:59:59+05:00";
 
-// После чтения $timezone:
-$timezone = trim(file_get_contents($timezoneFile));
-date_default_timezone_set($timezone);
+// Предполагаем, что $teacherId уже получен, и файлы существуют
 
-// Начало — текущее время
-$fromDate = date('Y-m-d\TH:i:sP');
+// Читаем таймзону
+$timezone = trim(file_get_contents(__DIR__ . "/timezone/{$teacherId}_timezone.txt"));
+$tz = new DateTimeZone($timezone);
 
-// Конец — через один месяц от «сейчас»
-$tillDate = date('Y-m-d\TH:i:sP', strtotime('+1 month'));
+// 1. Вычисляем первый день текущего месяца 00:00:00
+$dtStart = new DateTime('now', $tz);
+$dtStart->modify('first day of this month')->setTime(0, 0, 0);
+$fromDate = $dtStart->format('Y-m-d\T00:00:00P');
+
+// 2. Вычисляем последний день текущего месяца 23:59:59
+$dtEnd = new DateTime('now', $tz);
+$dtEnd->modify('last day of this month')->setTime(23, 59, 59);
+$tillDate = $dtEnd->format('Y-m-d\T23:59:59P');
+
 
 // Для отладки, можно залогировать, что уходит в API:
 error_log("DEBUG postData from={$fromDate} till={$tillDate}");

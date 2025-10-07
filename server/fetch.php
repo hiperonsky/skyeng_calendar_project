@@ -23,15 +23,16 @@ if ($method === 'OPTIONS') {
 
 // После чтения $timezone:
 $timezone = trim(file_get_contents($timezoneFile));
-$tz = new DateTimeZone($timezone);
+date_default_timezone_set($timezone);
 
-// Начало текущего месяца: 1-е число 00:00
-$dt = new DateTime('first day of this month 00:00:00', $tz);
-$fromDate = $dt->format('Y-m-d\TH:i:sP');
+// Начало — текущее время
+$fromDate = date('Y-m-d\TH:i:sP');
 
-// Конец текущего месяца: последний день 23:59:59
-$dt->modify('last day of this month')->setTime(23, 59, 59);
-$tillDate = $dt->format('Y-m-d\TH:i:sP');
+// Конец — через один месяц от «сейчас»
+$tillDate = date('Y-m-d\TH:i:sP', strtotime('+1 month'));
+
+// Для отладки, можно залогировать, что уходит в API:
+error_log("DEBUG postData from={$fromDate} till={$tillDate}");
 
 
 

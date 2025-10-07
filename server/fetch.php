@@ -18,21 +18,8 @@ if ($method === 'OPTIONS') {
 }
 
 // Диапазон дат (можно добавить динамику через параметры запроса)
-//$fromDate = "2025-10-01T00:00:00+05:00";
-//$tillDate = "2025-10-31T23:59:59+05:00";
-
-// Читаем таймзону из файла
-$timezone = trim(file_get_contents($timezoneFile));
-
-// Устанавливаем её как дефолтную для всех date-функций
-date_default_timezone_set($timezone);
-
-// Начало текущего месяца
-$fromDate = date('Y-m-01\T00:00:00P');
-
-// Конец следующего месяца
-$tillDate = date('Y-m-t\T23:59:59P', strtotime('+1 month'));
-
+$fromDate = "2025-11-01T00:00:00+05:00";
+$tillDate = "2025-11-30T23:59:59+05:00";
 
 // teacher_id должен приходить через POST (или GET) — пример для POST:
 $teacherId = $_POST['teacher_id'] ?? null;

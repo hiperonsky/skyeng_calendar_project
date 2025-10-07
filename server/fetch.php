@@ -18,20 +18,8 @@ if ($method === 'OPTIONS') {
 }
 
 // Диапазон дат (можно добавить динамику через параметры запроса)
-//$fromDate = "2025-07-01T00:00:00+05:00";
-//$tillDate = "2025-07-31T23:59:59+05:00";
-
-// Получаем текущую дату в нужном часовом поясе
-$currentDate = new DateTime('now', new DateTimeZone($timezone));
-
-// Начало текущего месяца
-$fromDate = $currentDate->format('Y-m-01T00:00:00P');
-
-// Конец следующего месяца
-$endOfNextMonth = clone $currentDate;
-$endOfNextMonth->add(new DateInterval('P1M'))->format('Y-m-t\T23:59:59P');
-$tillDate = $endOfNextMonth;
-
+$fromDate = "2025-07-01T00:00:00+05:00";
+$tillDate = "2025-07-31T23:59:59+05:00";
 
 // teacher_id должен приходить через POST (или GET) — пример для POST:
 $teacherId = $_POST['teacher_id'] ?? null;
@@ -55,6 +43,17 @@ if (!file_exists($cookiesFile) || !file_exists($timezoneFile)) {
 
 $cookies = trim(file_get_contents($cookiesFile));
 $timezone = trim(file_get_contents($timezoneFile));
+
+// ТЕПЕРЬ здесь делаем динамические даты (после чтения $timezone):
+$currentDate = new DateTime('now', new DateTimeZone($timezone));
+
+// Начало текущего месяца
+$fromDate = $currentDate->format('Y-m-01T00:00:00P');
+
+// Конец следующего месяца
+$endOfNextMonth = clone $currentDate;
+$endOfNextMonth->add(new DateInterval('P1M'));
+$tillDate = $endOfNextMonth->format('Y-m-t\T23:59:59P');
 
 // CURL-запрос к Skyeng API
 $postData = json_encode(['from' => $fromDate, 'till' => $tillDate]);

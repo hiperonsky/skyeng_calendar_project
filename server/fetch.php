@@ -18,11 +18,11 @@ if ($method === 'OPTIONS') {
 }
 
 // Диапазон дат (можно добавить динамику через параметры запроса)
-//$fromDate = "2025-11-01T00:00:00+05:00";
-//$tillDate = "2025-11-30T23:59:59+05:00";
+$fromDate = "2025-10-01T00:00:00+05:00";
+$tillDate = "2025-10-31T23:59:59+05:00";
 
 // Предполагаем, что $teacherId уже получен, и файлы существуют
-
+/*
 // Читаем таймзону
 $timezone = trim(file_get_contents(__DIR__ . "/timezone/{$teacherId}_timezone.txt"));
 $tz = new DateTimeZone($timezone);
@@ -36,7 +36,7 @@ $fromDate = $dtStart->format('Y-m-d\T00:00:00P');
 $dtEnd = new DateTime('now', $tz);
 $dtEnd->modify('last day of this month')->setTime(23, 59, 59);
 $tillDate = $dtEnd->format('Y-m-d\T23:59:59P');
-
+*/
 
 // Для отладки, можно залогировать, что уходит в API:
 error_log("DEBUG postData from={$fromDate} till={$tillDate}");

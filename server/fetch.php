@@ -21,17 +21,18 @@ if ($method === 'OPTIONS') {
 //$fromDate = "2025-11-01T00:00:00+05:00";
 //$tillDate = "2025-11-30T23:59:59+05:00";
 
-// Читаем таймзону
+// После чтения $timezone:
 $timezone = trim(file_get_contents($timezoneFile));
 $tz = new DateTimeZone($timezone);
 
-// 1) Начало текущего месяца, 00:00 в вашей зоне
+// Начало текущего месяца: 1-е число 00:00
 $dt = new DateTime('first day of this month 00:00:00', $tz);
 $fromDate = $dt->format('Y-m-d\TH:i:sP');
 
-// 2) Конец следующего месяца, 23:59:59 в вашей зоне
-$dt->modify('last day of next month')->setTime(23, 59, 59);
+// Конец текущего месяца: последний день 23:59:59
+$dt->modify('last day of this month')->setTime(23, 59, 59);
 $tillDate = $dt->format('Y-m-d\TH:i:sP');
+
 
 
 // teacher_id должен приходить через POST (или GET) — пример для POST:

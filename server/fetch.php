@@ -38,8 +38,7 @@ $dtEnd->modify('last day of this month')->setTime(23, 59, 59);
 $tillDate = $dtEnd->format('Y-m-d\T23:59:59P');
 */
 
-// Для отладки, можно залогировать, что уходит в API:
-error_log("DEBUG postData from={$fromDate} till={$tillDate}");
+
 
 
 
@@ -79,6 +78,9 @@ $dtEnd = new DateTime('now', $tz);
 $dtEnd->modify('last day of next month')->setTime(23, 59, 59);
 $tillDate = $dtEnd->format('Y-m-d\T23:59:59P');
 
+// Для отладки, можно залогировать, что уходит в API:
+error_log("DEBUG postData from={$fromDate} till={$tillDate}");
+
 // CURL-запрос к Skyeng API
 $postData = json_encode(['from' => $fromDate, 'till' => $tillDate]);
 $ch = curl_init('https://api-teachers.skyeng.ru/v2/schedule/events');
@@ -96,8 +98,8 @@ curl_setopt_array($ch, [
 ]);
 $response = curl_exec($ch);
 // После $response = curl_exec($ch);
-error_log("DEBUG RESPONSE HTTP_CODE={$httpCode} body={$response}");
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+error_log("DEBUG RESPONSE HTTP_CODE={$httpCode} body={$response}");
 $curlErr = curl_error($ch);
 curl_close($ch);
 

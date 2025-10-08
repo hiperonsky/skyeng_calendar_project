@@ -18,8 +18,8 @@ if ($method === 'OPTIONS') {
 }
 
 // Диапазон дат (можно добавить динамику через параметры запроса)
-$fromDate = "2025-10-01T00:00:00+05:00";
-$tillDate = "2025-11-30T23:59:59+05:00";
+//$fromDate = "2025-10-01T00:00:00+05:00";
+//$tillDate = "2025-11-30T23:59:59+05:00";
 
 // Предполагаем, что $teacherId уже получен, и файлы существуют
 /*
@@ -65,6 +65,19 @@ if (!file_exists($cookiesFile) || !file_exists($timezoneFile)) {
 
 $cookies = trim(file_get_contents($cookiesFile));
 $timezone = trim(file_get_contents($timezoneFile));
+
+// ТЕПЕРЬ здесь добавляем динамические даты:
+$tz = new DateTimeZone($timezone);
+
+// 1. Вычисляем первый день текущего месяца 00:00:00
+$dtStart = new DateTime('now', $tz);
+$dtStart->modify('first day of this month')->setTime(0, 0, 0);
+$fromDate = $dtStart->format('Y-m-d\T00:00:00P');
+
+// 2. Вычисляем последний день следующего месяца 23:59:59 (как в статичном примере)
+$dtEnd = new DateTime('now', $tz);
+$dtEnd->modify('last day of next month')->setTime(23, 59, 59);
+$tillDate = $dtEnd->format('Y-m-d\T23:59:59P');
 
 // CURL-запрос к Skyeng API
 $postData = json_encode(['from' => $fromDate, 'till' => $tillDate]);
